@@ -1,0 +1,21 @@
+{
+  "homemixVersion": 1,
+  "id": "notatki",
+  "version": "1.0.0",
+  "requires": { "homeApps": "2.4.0" },
+  "name": { "pl": "notatki", "en": "notatki" },
+  "icon": "pi-box",
+  "entry": "index.html",
+  "pages": [{ "path": "", "title": { "pl": "Notatki", "en": "Notes" } }],
+  "widgets": [
+    {
+      "id": "notes",
+      "title": { "pl": "Notatki", "en": "Notes" },
+      "size": "Medium",
+      "sizes": ["Small", "Medium", "Large"],
+      "places": ["Household", "Wall", "Account"]
+    }
+  ],
+  "capabilities": ["storage.household"],
+  "network": []
+}
