@@ -3,19 +3,25 @@
   "id": "notatki",
   "version": "1.0.0",
   "requires": { "homeApps": "2.4.0" },
-  "name": { "pl": "notatki", "en": "notatki" },
-  "icon": "pi-box",
+  "name": { "pl": "Notatki domowe", "en": "Home notes" },
+  "description": {
+    "pl": "Krótkie notatki dla domowników na dziś lub kilka dni. Znikają same, okejka potwierdza odczyt.",
+    "en": "Short notes for the household for today or a few days. They vanish on their own; a like confirms reading."
+  },
+  "icon": "pi-thumbtack",
   "entry": "index.html",
-  "pages": [{ "path": "", "title": { "pl": "Notatki", "en": "Notes" } }],
+  "targets": ["Household"],
+  "pages": [{ "path": "", "title": { "pl": "Notatki", "en": "Notes" }, "menu": true }],
   "widgets": [
     {
       "id": "notes",
       "title": { "pl": "Notatki", "en": "Notes" },
-      "size": "Medium",
+      "size": "Small",
       "sizes": ["Small", "Medium", "Large"],
-      "places": ["Household", "Wall", "Account"]
+      "places": ["Household", "Wall"]
     }
   ],
-  "capabilities": ["storage.household"],
-  "network": []
+  "capabilities": ["storage.household", "household.members", "notify"],
+  "network": [],
+  "permissions": [{ "id": "likes.write", "minRole": "Guest" }]
 }
