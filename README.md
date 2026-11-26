@@ -20,6 +20,9 @@ One like per document, so two people liking at once never conflict. A note is sh
 (the device's local day); the first Member's device that opens the add-on after that deletes it and its likes. The
 wall tablet checks the day every minute. Pictures: initials only; the sandbox's CSP blocks avatars from outside HomeApps.
 
+From 3.0 notes and likes are written with `expiresAt` (end of the `until` day), so the host purges them too. Notes created
+before 3.0 have no `expiresAt` and are removed by the client cleanup only.
+
 ## Scripts
 
 - `npm run dev`: a fake HomeApps at http://localhost:5180 with a household, roles and data in memory.
