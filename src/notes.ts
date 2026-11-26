@@ -38,7 +38,7 @@ export interface Note extends NoteValue {
 const newNoteId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 const likeKey = (note: string, user: string) => `${note}.${user.replace(/-/g, '')}`
 
-/** End of the `until` day (local midnight after it) as ISO: the host hides and purges the document then. */
+/** End of the `until` day (the device's local midnight after it, not the household time zone) as ISO: the host hides and purges the document then. */
 export function expiryOf(until: string): string {
   const end = new Date(`${until}T00:00`)
   end.setDate(end.getDate() + 1)
@@ -130,6 +130,17 @@ export function useNotes() {
   async function edit(n: Note, text: string, from: string, until: string) {
     const { id, person: _p, likes: _l, likedByMe: _b, mine: _m, ...value } = n
     await putNote(id, { ...value, text: text.trim(), from, until })
+    if (until !== n.until) {
+      // Likes expire with their note: move them to the new end day.
+      for (const l of likes.items.value.filter((x) => x.value.note === id)) {
+        await homemix.data.put('likes', l.key, l.value, {
+          scope: 'household',
+          version: l.version,
+          expiresAt: expiryOf(until),
+        })
+      }
+      await likes.refresh()
+    }
   }
 
   /** "Gotowe": the note goes, and its likes with it. */
