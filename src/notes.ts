@@ -38,6 +38,13 @@ export interface Note extends NoteValue {
 const newNoteId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12)
 const likeKey = (note: string, user: string) => `${note}.${user.replace(/-/g, '')}`
 
+/** End of the `until` day (local midnight after it) as ISO: the host hides and purges the document then. */
+export function expiryOf(until: string): string {
+  const end = new Date(`${until}T00:00`)
+  end.setDate(end.getDate() + 1)
+  return end.toISOString()
+}
+
 export function validate(text: string, from: string, until: string, today: string): string | null {
   const trimmed = text.trim()
   if (!trimmed) return 'Wpisz treść notatki.'
@@ -101,10 +108,17 @@ export function useNotes() {
 
   const canEdit = (n: Note) => canWrite.value && (n.mine || isAdmin.value)
 
+  // useCollection.put takes no options, so write through the SDK with expiresAt and reload the collection.
+  async function putNote(id: string, value: NoteValue) {
+    const version = notes.items.value.find((d) => d.key === id)?.version
+    await homemix.data.put('notes', id, value, { scope: 'household', version, expiresAt: expiryOf(value.until) })
+    await notes.refresh()
+  }
+
   async function add(text: string, from: string, until: string) {
     const id = newNoteId()
     const value: NoteValue = { text: text.trim(), from, until, author: me.value, createdAt: new Date().toISOString() }
-    await notes.put(id, value)
+    await putNote(id, value)
     // The rest of the household hears about it; over the limit (30/h) the note still stands.
     if (from <= today.value) {
       await homemix
@@ -115,7 +129,7 @@ export function useNotes() {
 
   async function edit(n: Note, text: string, from: string, until: string) {
     const { id, person: _p, likes: _l, likedByMe: _b, mine: _m, ...value } = n
-    await notes.put(id, { ...value, text: text.trim(), from, until })
+    await putNote(id, { ...value, text: text.trim(), from, until })
   }
 
   /** "Gotowe": the note goes, and its likes with it. */
@@ -127,7 +141,11 @@ export function useNotes() {
   async function toggleLike(n: Note) {
     const key = likeKey(n.id, me.value)
     if (n.likedByMe) await likes.remove(key)
-    else await likes.put(key, { note: n.id, user: me.value })
+    else {
+      const value: LikeValue = { note: n.id, user: me.value }
+      await homemix.data.put('likes', key, value, { scope: 'household', expiresAt: expiryOf(n.until) })
+      await likes.refresh()
+    }
   }
 
   async function removeLikes(note: string) {
